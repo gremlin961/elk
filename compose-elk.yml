@@ -1,0 +1,34 @@
+version: "3"
+services:
+  elasticsearch:
+    image: elasticsearch:latest
+    ports:
+      - 9200
+      - 9300
+    networks:
+      - elk
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+
+
+  kibana:
+    image: kibana:latest
+    ports:
+      - 8080
+    networks:
+      - ucp-hrm
+    deploy:
+      labels:
+        com.docker.ucp.mesh.http.0001: internal_port=5601,external_route=http://elk.richard.dtcntr.net
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 10
+        window: 300s
+
+networks:
+  elk:
+    driver: overlay
+  ucp-hrm:
+    external: true
